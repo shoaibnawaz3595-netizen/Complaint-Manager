@@ -1,0 +1,176 @@
+{
+  "name": "Complaint Manager",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -32
+      ],
+      "id": "c2e9dc50-1949-43d3-b55b-e6a7c3ec60be",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a4cfa795-238a-496e-ab16-dc94e188d9c0",
+              "name": "complaint_text",
+              "value": "Street light not working near my house for 3 days.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -32
+      ],
+      "id": "c21ca8d5-e04c-4861-a5cb-4524ffee6c99",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.complaint_text.toLowerCase();\n\n// Category Rules\nlet category = \"General\";\nif (text.includes(\"water\") || text.includes(\"pipeline\")) {\n  category = \"Water Supply\";\n} else if (text.includes(\"light\") || text.includes(\"electric\") || text.includes(\"load\")) {\n  category = \"Electricity\";\n} else if (text.includes(\"road\") || text.includes(\"street\") || text.includes(\"pothole\")) {\n  category = \"Road Issue\";\n}\n\n// Priority Rules\nlet priority = \"Medium\";\nif (text.includes(\"urgent\") || text.includes(\"danger\") || text.includes(\"serious\")) {\n  priority = \"High\";\n}\n\n// Summary\nlet summary = text.length > 80 ? text.substring(0, 80) + \"...\" : text;\n\nreturn [\n  {\n    json: {\n      complaint_text: $json.complaint_text,\n      category,\n      priority,\n      summary,\n      date: new Date().toISOString(),\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -32
+      ],
+      "id": "50dc2524-75f8-48e1-b1eb-f186e16f343e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XniTFRABAyag_e4pj7PYVXl8fmnAYPgjuVAKoZ3H3jA",
+          "mode": "list",
+          "cachedResultName": "complaints.csv",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XniTFRABAyag_e4pj7PYVXl8fmnAYPgjuVAKoZ3H3jA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XniTFRABAyag_e4pj7PYVXl8fmnAYPgjuVAKoZ3H3jA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "c3b0306a-d340-40b3-b5cf-33a67c5aed88",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jZpCJ9vUEgLqLFUz",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "shoaibnawaz3595@gmail.com ",
+        "subject": "New Complaint Received",
+        "emailType": "text",
+        "message": "=Complaint: {{$json.complaint_text}} Category: {{$json.category}} Priority: {{$json.priority}} Summary: {{$json.summary}} Date: {{$json.date}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -32
+      ],
+      "id": "5de1f4a7-3f88-4012-a6e8-d8a2de9966a3",
+      "name": "Send a message",
+      "webhookId": "efeb6de8-8845-4d71-b93a-958dc12ef920",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8g8e6mVLuD807JP8",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d07efe15-270e-48c9-8e99-ed8029ec5ed1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9e3032c08d6a7f2720a4060d6c9df5c1b45b6f38bbf9fa8037fe67e60f17af2a"
+  },
+  "id": "EiWAqEfDS3zFNMdP",
+  "tags": []
+}
